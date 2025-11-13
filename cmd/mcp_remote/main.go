@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/FantasyRL/go-mcp-demo/config"
+	"github.com/FantasyRL/go-mcp-demo/internal/mcp_local/mcp_inject"
 	"github.com/FantasyRL/go-mcp-demo/pkg/base/mcp_server"
 	"github.com/FantasyRL/go-mcp-demo/pkg/base/tool_set"
 	"github.com/FantasyRL/go-mcp-demo/pkg/constant"
@@ -20,12 +21,12 @@ func init() {
 	flag.Parse()
 	config.Load(*configPath, serviceName)
 	logger.Init(serviceName, config.GetLoggerLevel())
-	toolSet = tool_set.NewToolSet()
+	toolSet = tool_set.NewToolSet(mcp_inject.WithTimeTool())
 }
 
 func main() {
 	logger.Infof("starting mcp server, transport = %s", config.MCP.Transport)
-	coreServer := mcp_server.NewCoreServer(config.MCP.ServerName, config.MCP.Transport, toolSet)
+	coreServer := mcp_server.NewCoreServer(config.MCP.ServerName, config.MCP.Transport, toolSet, nil)
 	switch config.MCP.Transport {
 	case constant.MCPTransportStdio:
 		if err := mcp_server.ServeStdio(coreServer); err != nil {
@@ -40,7 +41,7 @@ func main() {
 			return
 		}
 		logger.Infof("mcp_server: http server listening at %s", addr)
-		if err := mcp_server.NewStreamableHTTPServer(coreServer).Start(addr); err != nil {
+		if err := mcp_server.NewStreamableHTTPServer(coreServer, serviceName, addr).Start(addr); err != nil {
 			logger.Errorf("serve http: %v", err)
 			return
 		}

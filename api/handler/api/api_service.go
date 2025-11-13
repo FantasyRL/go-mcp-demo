@@ -5,6 +5,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"io"
+
 	api "github.com/FantasyRL/go-mcp-demo/api/model/api"
 	"github.com/FantasyRL/go-mcp-demo/api/pack"
 	"github.com/FantasyRL/go-mcp-demo/internal/host"
@@ -24,8 +26,28 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	// 处理图片上传
+	var imageData []byte
+	file, err := c.FormFile("image")
+	if err == nil && file != nil {
+		// 打开上传的文件
+		src, err := file.Open()
+		if err != nil {
+			pack.RespError(c, err)
+			return
+		}
+		defer src.Close()
+
+		// 读取文件内容
+		imageData, err = io.ReadAll(src)
+		if err != nil {
+			pack.RespError(c, err)
+			return
+		}
+	}
+
 	resp := new(api.ChatResponse)
-	msg, err := host.NewHost(ctx, clientSet).Chat(1, req.Message)
+	msg, err := host.NewHost(ctx, clientSet).Chat(1, req.Message, imageData)
 	if err != nil {
 		pack.RespError(c, err)
 		return
@@ -44,6 +66,26 @@ func ChatSSE(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 
+	// 处理图片上传
+	var imageData []byte
+	file, err := c.FormFile("image")
+	if err == nil && file != nil {
+		// 打开上传的文件
+		src, err := file.Open()
+		if err != nil {
+			c.String(consts.StatusInternalServerError, err.Error())
+			return
+		}
+		defer src.Close()
+
+		// 读取文件内容
+		imageData, err = io.ReadAll(src)
+		if err != nil {
+			c.String(consts.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
 	w := sse.NewWriter(c)
 	defer w.Close()
 
@@ -59,7 +101,7 @@ func ChatSSE(ctx context.Context, c *app.RequestContext) {
 		}
 	}
 
-	if err := host.NewHost(ctx, clientSet).StreamChatOpenAI(ctx, 1, req.Message, emit); err != nil {
+	if err := host.NewHost(ctx, clientSet).StreamChatOpenAI(ctx, 1, req.Message, imageData, emit); err != nil {
 		_ = emit("error", map[string]any{"error": err.Error()})
 		return
 	}

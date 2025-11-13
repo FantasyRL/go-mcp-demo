@@ -25,15 +25,18 @@ func init() {
 	config.Load(*configPath, serviceName)
 	logger.Init(serviceName, config.GetLoggerLevel())
 	mcp_local.InjectDependencies()
-	toolSet = tool_set.NewToolSet(mcp_inject.WithTimeTool(), mcp_inject.WithLongRunningOperationTool(),
+	toolSet = tool_set.NewToolSet(mcp_inject.WithLongRunningOperationTool(),
 		mcp_inject.WithDevRunnerTools(),
-		mcp_inject.WithAIScienceAndEngineeringBuildHtmlTool())
+		mcp_inject.WithAIScienceAndEngineeringBuildHtmlTool(),
+	)
 	promptSet = prompt_set.NewPromptSet()
 }
 
 func main() {
 	logger.Infof("starting mcp server, transport = %s", config.MCP.Transport)
+	// 初始化MCP核心业务
 	coreServer := mcp_server.NewCoreServer(config.MCP.ServerName, config.MCP.Transport, toolSet, promptSet)
+	// 初始化MCP使用的传输层
 	switch config.MCP.Transport {
 	case constant.MCPTransportStdio:
 		if err := mcp_server.ServeStdio(coreServer); err != nil {
@@ -48,7 +51,7 @@ func main() {
 			return
 		}
 		logger.Infof("mcp_server: http server listening at %s", addr)
-		if err := mcp_server.NewStreamableHTTPServer(coreServer).Start(addr); err != nil {
+		if err := mcp_server.NewStreamableHTTPServer(coreServer, serviceName, addr).Start(addr); err != nil {
 			logger.Errorf("serve http: %v", err)
 			return
 		}

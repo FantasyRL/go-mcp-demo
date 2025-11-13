@@ -64,8 +64,7 @@ type consulConfig struct {
 	Address    string `mapstructure:"address"`    // 例如 "127.0.0.1:8500"
 	Datacenter string `mapstructure:"datacenter"` // 可空
 	Token      string `mapstructure:"token"`      // 可空
-	Service    string `mapstructure:"service"`    // 要发现的服务名
-	Tag        string `mapstructure:"tag"`        // 可空
+	Tag        string `mapstructure:"tag"`        // mcp
 	Scheme     string `mapstructure:"scheme"`     // "http" | "https"
 	Path       string `mapstructure:"path"`       // 例如 "/mcp"
 }
@@ -76,8 +75,10 @@ type consulConfig struct {
 // - 当 Provider=static 时使用 services.* 的静态地址（见 services 配置）
 // - 当 BaseURL 非空时，优先使用 BaseURL（由 MCP 自身指定）
 type registryConfig struct {
-	Provider string       `mapstructure:"provider"` // "consul" | "none"
-	Consul   consulConfig `mapstructure:"consul"`
+	Provider        string        `mapstructure:"provider"` // "consul" | "none"
+	Consul          consulConfig  `mapstructure:"consul"`
+	RefreshInterval time.Duration `mapstructure:"refresh_interval"`
+	ResolveTimeout  time.Duration `mapstructure:"resolve_timeout"`
 }
 
 type service struct {

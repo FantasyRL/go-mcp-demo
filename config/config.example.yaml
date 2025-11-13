@@ -10,9 +10,10 @@ ai_provider:
   #  model: "qwen3:1.7b"
   model: "deepseek-chat"
   remote:
+    remote:
     provider: "deepseek" # "openai" | "deepseek" | ...
     base_url: "https://api.deepseek.com/v1"
-    api_key: ""
+    api_key: "YOUR_API_KEY_HERE"  # 请替换为你的 API Key
 
   options:
     request_timeout: "30s"

@@ -14,7 +14,7 @@ var historyOpenAI = make(map[int64][]openai.ChatCompletionMessageParamUnion)
 
 type Host struct {
 	ctx           context.Context
-	mcpCli        *mcp_client.MCPClient
+	mcpCli        mcp_client.ToolClient
 	aiProviderCli *ai_provider.Client
 }
 

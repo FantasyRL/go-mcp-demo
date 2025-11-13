@@ -15,7 +15,7 @@ var (
 // ClientSet storage various client objects
 // Notice: some or all of them maybe nil, we should check obj when use
 type ClientSet struct {
-	MCPCli           *mcp_client.MCPClient
+	MCPCli           mcp_client.ToolClient
 	AiProviderCli    *ai_provider.Client
 	RegistryResolver registry.Resolver
 	cleanups         []func()

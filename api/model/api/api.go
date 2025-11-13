@@ -5,11 +5,13 @@ package api
 import (
 	"context"
 	"fmt"
+
 	"github.com/apache/thrift/lib/go/thrift"
 )
 
 type ChatRequest struct {
 	Message string `thrift:"message,1" form:"message" json:"message"`
+	Image   []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
 }
 
 func NewChatRequest() *ChatRequest {
@@ -23,8 +25,22 @@ func (p *ChatRequest) GetMessage() (v string) {
 	return p.Message
 }
 
+var ChatRequest_Image_DEFAULT []byte
+
+func (p *ChatRequest) GetImage() (v []byte) {
+	if !p.IsSetImage() {
+		return ChatRequest_Image_DEFAULT
+	}
+	return p.Image
+}
+
 var fieldIDToName_ChatRequest = map[int16]string{
 	1: "message",
+	2: "image",
+}
+
+func (p *ChatRequest) IsSetImage() bool {
+	return p.Image != nil
 }
 
 func (p *ChatRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -49,6 +65,14 @@ func (p *ChatRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -94,6 +118,17 @@ func (p *ChatRequest) ReadField1(iprot thrift.TProtocol) error {
 	p.Message = _field
 	return nil
 }
+func (p *ChatRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field []byte
+	if v, err := iprot.ReadBinary(); err != nil {
+		return err
+	} else {
+		_field = []byte(v)
+	}
+	p.Image = _field
+	return nil
+}
 
 func (p *ChatRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -103,6 +138,10 @@ func (p *ChatRequest) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -138,6 +177,25 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ChatRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetImage() {
+		if err = oprot.WriteFieldBegin("image", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBinary([]byte(p.Image)); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
 func (p *ChatRequest) String() string {
@@ -290,6 +348,7 @@ func (p *ChatResponse) String() string {
 
 type ChatSSEHandlerRequest struct {
 	Message string `thrift:"message,1" json:"message" query:"message"`
+	Image   []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
 }
 
 func NewChatSSEHandlerRequest() *ChatSSEHandlerRequest {
@@ -303,8 +362,22 @@ func (p *ChatSSEHandlerRequest) GetMessage() (v string) {
 	return p.Message
 }
 
+var ChatSSEHandlerRequest_Image_DEFAULT []byte
+
+func (p *ChatSSEHandlerRequest) GetImage() (v []byte) {
+	if !p.IsSetImage() {
+		return ChatSSEHandlerRequest_Image_DEFAULT
+	}
+	return p.Image
+}
+
 var fieldIDToName_ChatSSEHandlerRequest = map[int16]string{
 	1: "message",
+	2: "image",
+}
+
+func (p *ChatSSEHandlerRequest) IsSetImage() bool {
+	return p.Image != nil
 }
 
 func (p *ChatSSEHandlerRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -329,6 +402,14 @@ func (p *ChatSSEHandlerRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -374,6 +455,17 @@ func (p *ChatSSEHandlerRequest) ReadField1(iprot thrift.TProtocol) error {
 	p.Message = _field
 	return nil
 }
+func (p *ChatSSEHandlerRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field []byte
+	if v, err := iprot.ReadBinary(); err != nil {
+		return err
+	} else {
+		_field = []byte(v)
+	}
+	p.Image = _field
+	return nil
+}
 
 func (p *ChatSSEHandlerRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -383,6 +475,10 @@ func (p *ChatSSEHandlerRequest) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -418,6 +514,25 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ChatSSEHandlerRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetImage() {
+		if err = oprot.WriteFieldBegin("image", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteBinary([]byte(p.Image)); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
 func (p *ChatSSEHandlerRequest) String() string {

@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
+
 	"github.com/FantasyRL/go-mcp-demo/api/handler/api"
 	"github.com/FantasyRL/go-mcp-demo/api/router"
 	"github.com/FantasyRL/go-mcp-demo/config"
 	"github.com/FantasyRL/go-mcp-demo/pkg/constant"
 	"github.com/FantasyRL/go-mcp-demo/pkg/logger"
 	"github.com/FantasyRL/go-mcp-demo/pkg/utils"
-	"time"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/flow"
@@ -31,19 +32,25 @@ func init() {
 	flag.Parse()
 	config.Load(*configPath, serviceName)
 	logger.Init(serviceName, config.GetLoggerLevel())
+	logger.Infof("About to initialize API handlers")
 	api.Init()
+	logger.Infof("API handlers initialized successfully")
 }
 
 func main() {
+	logger.Infof("main() function started")
 	var err error
 
+	logger.Infof("About to call GetAvailablePort()")
 	// get available port from config set
 	listenAddr, err := utils.GetAvailablePort()
 	if err != nil {
 		logger.Errorf("Api: get available port failed, err: %v", err)
 		return
 	}
+	logger.Infof("Got listen address: %s", listenAddr)
 
+	logger.Infof("Creating Hertz server")
 	h := server.New(
 		server.WithHostPorts(listenAddr),
 		server.WithHandleMethodNotAllowed(true),
@@ -82,7 +89,9 @@ func main() {
 	))
 
 	router.Register(h)
+	logger.Infof("Server is about to start on %s", listenAddr)
 	h.Spin()
+	logger.Infof("Server stopped")
 }
 
 func recoveryHandler(ctx context.Context, c *app.RequestContext, err interface{}, stack []byte) {

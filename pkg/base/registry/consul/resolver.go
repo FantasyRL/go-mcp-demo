@@ -2,20 +2,12 @@ package consul
 
 import (
 	"fmt"
-	"github.com/FantasyRL/go-mcp-demo/config"
+	"github.com/FantasyRL/go-mcp-demo/pkg/logger"
+	"strings"
 
+	"github.com/FantasyRL/go-mcp-demo/config"
 	"github.com/hashicorp/consul/api"
 )
-
-type ConsulConfig struct {
-	Address    string // 127.0.0.1:8500
-	Datacenter string // 可空
-	Token      string // 可空
-	Service    string // 要发现的服务名（必填）
-	Tag        string // 可空，按 tag 过滤
-	Scheme     string // http / https，默认 http
-	Path       string // 例如 "/mcp"，默认 "/mcp"
-}
 
 type Resolver struct {
 	cfg *ConsulConfig
@@ -26,18 +18,29 @@ func NewResolver() *Resolver {
 		Address:    config.Registry.Consul.Address,
 		Datacenter: config.Registry.Consul.Datacenter,
 		Token:      config.Registry.Consul.Token,
-		Service:    config.Registry.Consul.Service,
 		Tag:        config.Registry.Consul.Tag,
 		Scheme:     config.Registry.Consul.Scheme,
 		Path:       config.Registry.Consul.Path,
 	}
-	if cfg.Address == "" || cfg.Service == "" {
+	if cfg.Address == "" {
 		return nil
 	}
-	return &Resolver{cfg: cfg}
+	return &Resolver{
+		cfg: cfg,
+	}
 }
 
-func (r *Resolver) Resolve() (string, error) {
+// Resolve 返回所有通过健康检查的实例 URL
+func (r *Resolver) Resolve(services []string) (map[string][]string, error) {
+	// 基本校验
+	if len(services) == 0 {
+		return nil, fmt.Errorf("no Services provided")
+	}
+	if r.cfg.Address == "" {
+		return nil, fmt.Errorf("consul: empty address")
+	}
+
+	// 构造 Consul 客户端
 	conf := api.DefaultConfig()
 	conf.Address = r.cfg.Address
 	if r.cfg.Datacenter != "" {
@@ -46,33 +49,41 @@ func (r *Resolver) Resolve() (string, error) {
 	if r.cfg.Token != "" {
 		conf.Token = r.cfg.Token
 	}
-
 	cl, err := api.NewClient(conf)
 	if err != nil {
-		return "", fmt.Errorf("consul client: %w", err)
-	}
-	q := &api.QueryOptions{Datacenter: r.cfg.Datacenter, Token: r.cfg.Token}
-	entries, _, err := cl.Health().Service(r.cfg.Service, r.cfg.Tag, true, q)
-	if err != nil {
-		return "", fmt.Errorf("consul discover: %w", err)
-	}
-	if len(entries) == 0 {
-		return "", fmt.Errorf("consul: no healthy instances for %s", r.cfg.Service)
+		return nil, fmt.Errorf("consul client: %w", err)
 	}
 
-	inst := entries[0]
-	host := inst.Service.Address
-	if host == "" {
-		host = inst.Node.Address
+	q := &api.QueryOptions{
+		Datacenter: r.cfg.Datacenter,
+		Token:      r.cfg.Token,
 	}
-	port := inst.Service.Port
-	scheme := r.cfg.Scheme
-	if scheme == "" {
-		scheme = "http"
+	// 结果集合与去重
+	out := make(map[string][]string)
+
+	// 依次查询每个服务名
+	for _, svc := range services {
+		if svc == "" {
+			continue
+		}
+		entries, _, err := cl.Health().Service(svc, r.cfg.Tag, true, q)
+		if err != nil {
+			return nil, fmt.Errorf("consul discover %q: %w", svc, err)
+		}
+		// 没有健康实例不视为整体错误，继续查下一个服务
+		for _, inst := range entries {
+			// 使用注册时写入的完整 addr
+			if inst.Service != nil && inst.Service.Meta != nil {
+				if u := strings.TrimSpace(inst.Service.Meta["addr"]); u != "" {
+					out[svc] = append(out[svc], u)
+				} else {
+					logger.Errorf("consul: service %s no metadata", inst.Service.Service)
+				}
+			}
+		}
 	}
-	path := r.cfg.Path
-	if path == "" {
-		path = "/mcp"
+	if len(out) == 0 {
+		return nil, fmt.Errorf("consul: no healthy instances for %v", services)
 	}
-	return fmt.Sprintf("%s://%s:%d%s", scheme, host, port, path), nil
+	return out, nil
 }

@@ -2,6 +2,8 @@ package host
 
 import (
 	"context"
+	"encoding/base64"
+
 	"github.com/FantasyRL/go-mcp-demo/config"
 	"github.com/FantasyRL/go-mcp-demo/pkg/base/ai_provider"
 	"github.com/FantasyRL/go-mcp-demo/pkg/constant"
@@ -9,15 +11,30 @@ import (
 	"github.com/FantasyRL/go-mcp-demo/pkg/logger"
 )
 
-func (h *Host) Chat(id int64, msg string) (string, error) {
+func (h *Host) Chat(id int64, msg string, imageData []byte) (string, error) {
+	// 如果是远程模式（OpenAI），使用 ChatOpenAI
+	if config.AiProvider.Mode == constant.AiProviderModeRemote {
+		return h.ChatOpenAI(id, msg, imageData)
+	}
+
+	// 本地模式（Ollama）的原有逻辑
 	// 获取当前用户的对话历史（如果没有则初始化为空切片）
 	userHistory := history[id]
 	if userHistory == nil {
 		userHistory = []ai_provider.Message{}
 	}
 
+	// 构建用户消息
+	userMsg := ai_provider.Message{Role: "user", Content: msg}
+
+	// 如果有图片数据，转换为base64并添加到消息中
+	if len(imageData) > 0 {
+		base64Image := base64.StdEncoding.EncodeToString(imageData)
+		userMsg.Images = []string{base64Image}
+	}
+
 	// 将当前用户消息加入历史
-	userHistory = append(userHistory, ai_provider.Message{Role: "user", Content: msg})
+	userHistory = append(userHistory, userMsg)
 
 	// 转换工具定义
 	ollamaTools := h.mcpCli.ConvertToolsToOllama()

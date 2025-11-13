@@ -7,6 +7,12 @@ struct ChatRequest{
         description: "用户发送的消息内容",
         type: "string"
     }')
+    2: optional binary image(api.form="image", api.file_name="image", openapi.property='{
+        title: "图片文件",
+        description: "可选的图片文件，支持上传图片给AI分析",
+        type: "string",
+        format: "binary"
+    }')
 }(
     openapi.schema='{
         title: "聊天请求",
@@ -34,6 +40,12 @@ struct ChatSSEHandlerRequest{
         title: "用户消息",
         description: "用户发送的消息内容",
         type: "string"
+    }')
+    2: optional binary image(api.form="image", api.file_name="image", openapi.property='{
+        title: "图片文件",
+        description: "可选的图片文件，支持上传图片给AI分析",
+        type: "string",
+        format: "binary"
     }')
 }(
      openapi.schema='{
