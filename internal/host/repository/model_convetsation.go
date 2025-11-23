@@ -2,7 +2,7 @@ package repository
 
 import "time"
 
-// Conversation 手写会话表模型，避免与 gorm-gen 冲突
+
 type Conversation struct {
 	ID             int64  `gorm:"primaryKey"`
 	ConversationID string `gorm:"uniqueIndex;size:64"`
