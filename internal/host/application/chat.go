@@ -12,12 +12,10 @@ import (
 	"github.com/FantasyRL/go-mcp-demo/pkg/logger"
 )
 
-// 旧接口保持：未传会话ID
 func (h *Host) Chat(id int64, msg string, imageData []byte) (string, error) {
 	return h.ChatWithConversation(id, "", msg, imageData)
 }
 
-// 新接口：带 conversationID 的封装（不破坏原有逻辑）
 func (h *Host) ChatWithConversation(id int64, conversationID string, msg string, imageData []byte) (string, error) {
 	if config.AiProvider.Mode == constant.AiProviderModeRemote {
 		return h.ChatOpenAI(id, msg, imageData)
