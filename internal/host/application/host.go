@@ -23,7 +23,7 @@ type Host struct {
 	aiProviderCli      *ai_provider.Client
 	templateRepository repository.TemplateRepository
 
-	// 新增：会话持久化与内存缓存
+	// 会话持久化与内存缓存
 	conversationRepo repository.ConversationRepository
 	historyStore     *MemoryHistoryStore
 }
