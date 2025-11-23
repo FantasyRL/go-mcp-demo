@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// AIMessageDTO 用于持久化的简化消息结构
+//  用于持久化的简化消息结构
 type AIMessageDTO struct {
 	Role     string   `json:"role"`
 	Content  string   `json:"content"`
@@ -15,7 +15,7 @@ type AIMessageDTO struct {
 	Images   []string `json:"images,omitempty"`
 }
 
-// ConversationRepository 定义会话历史的存取接口
+//定义会话历史的存取接口
 type ConversationRepository interface {
 	UpsertHistory(ctx context.Context, conversationID string, userID int64, messages []AIMessageDTO) error
 	GetHistory(ctx context.Context, conversationID string) (messages []AIMessageDTO, userID int64, updatedAtMs int64, err error)
