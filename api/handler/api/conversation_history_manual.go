@@ -9,8 +9,6 @@ import (
 	consts "github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
-// 手工历史查询（不依赖生成器模型/路由）。
-// 请在 cmd/host/main.go 中手工注册： h.GET("/api/v1/conversation/history", api.GetConversationHistory)
 func GetConversationHistory(ctx context.Context, c *app.RequestContext) {
 	convID := c.Query("conversation_id")
 	if convID == "" {
