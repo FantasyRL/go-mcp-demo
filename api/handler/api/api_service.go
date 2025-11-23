@@ -15,9 +15,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/sse"
 )
 
-// Chat .
-// 手工补丁要点：conversation_id 从 query 或 form 中读取（因为当前生成的模型无该字段）。
-// @router /api/v1/chat [POST]
+
 func Chat(ctx context.Context, c *app.RequestContext) {
 	var req api.ChatRequest
 	if err := c.BindAndValidate(&req); err != nil {
@@ -62,7 +60,6 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 }
 
 // ChatSSE .
-// 手工补丁要点：不读取 imageData（避免未使用编译错误）。
 // conversation_id 从 query 或 form 中读取，仅用于内存历史上下文（当前未持久化流式历史）。
 // @router /api/v1/chat/sse [GET]
 func ChatSSE(ctx context.Context, c *app.RequestContext) {
@@ -100,8 +97,6 @@ func ChatSSE(ctx context.Context, c *app.RequestContext) {
 	}
 }
 
-// 说明：如果你的生成模型未包含历史相关结构体/接口，请使用手工版 handler（conversation_history_manual.go）并在 main.go 手工注册路由。
-// 这里不再定义 GetConversationHistory，避免与手工版或生成版重复。
 
 // Template .
 // @router /api/v1/template [POST]
