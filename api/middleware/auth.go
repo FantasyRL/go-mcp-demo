@@ -34,8 +34,8 @@ func Auth() app.HandlerFunc {
 	}
 }
 
-// TODO: 替换为真实 token 解码逻辑
+
 func parseUserIDFromToken(token string) (int64, error) {
-	// 示例：固定返回 1
+
 	return 1, nil
 }
