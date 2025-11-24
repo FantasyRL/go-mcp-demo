@@ -27,6 +27,7 @@ func Register(r *server.Hertz) {
 			_v1.POST("/template", append(_templateMw(), api.Template)...)
 			{
 				_conversation := _v1.Group("/conversation", _conversationMw()...)
+				_conversation.GET("/history", append(_getconversationhistoryMw(), api.GetConversationHistory)...)
 				_conversation.POST("/summarize", append(_summarizeconversationMw(), api.SummarizeConversation)...)
 			}
 			{

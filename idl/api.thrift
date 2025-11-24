@@ -1,6 +1,7 @@
 namespace go api
 include "model.thrift"
 include "openapi.thrift"
+
 struct ChatRequest{
     1: string message(api.body="message", openapi.property='{
         title: "用户消息",
@@ -8,10 +9,15 @@ struct ChatRequest{
         type: "string"
     }')
     2: optional binary image(api.form="image", api.file_name="image", openapi.property='{
-        title: "图片文件",
-        description: "可选的图片文件，支持上传图片给AI分析",
-        type: "string",
-        format: "binary"
+        title:"图片文件",
+        description:"可选的图片文件，支持上传图片给AI分析",
+        type:"string",
+        format:"binary"
+    }')
+    3: string conversation_id(api.body="conversation_id", openapi.property='{
+        title:"对话ID",
+        description:"前端生成的UUID，多轮会话唯一标识",
+        type:"string"
     }')
 }(
     openapi.schema='{
@@ -23,9 +29,14 @@ struct ChatRequest{
 
 struct ChatResponse{
     1: string response(api.body="response", openapi.property='{
-        title: "AI回复",
-        description: "AI生成的回复内容",
-        type: "string"
+        title:"AI回复",
+        description:"AI生成的回复内容",
+        type:"string"
+    }')
+    2: optional string conversation_id(api.body="conversation_id", openapi.property='{
+        title:"对话ID",
+        description:"回显本轮所属的对话UUID",
+        type:"string"
     }')
 }(
     openapi.schema='{
@@ -42,9 +53,14 @@ struct ChatSSEHandlerRequest{
         type: "string"
     }')
     2: optional binary image(api.form="image", api.file_name="image", openapi.property='{
-        title: "图片文件",
-        description: "可选的图片文件，支持上传图片给AI分析",
-        type: "file",
+        title:"图片文件",
+        description:"可选的图片文件，支持上传图片给AI分析",
+        type:"file"
+    }')
+    3: string conversation_id(api.query="conversation_id", openapi.property='{
+        title:"对话ID",
+        description:"前端生成的UUID，多轮会话标识",
+        type:"string"
     }')
 }(
      openapi.schema='{
@@ -56,15 +72,53 @@ struct ChatSSEHandlerRequest{
 
 struct ChatSSEHandlerResponse{
     1: string response(api.body="response", openapi.property='{
-        title: "AI回复片段",
-        description: "AI生成的回复片段",
-        type: "string"
+        title:"AI回复片段",
+        description:"AI生成的回复片段",
+        type:"string"
+    }')
+    2: optional string conversation_id(api.body="conversation_id", openapi.property='{
+        title:"对话ID UUID",
+        type:"string"
     }')
 }(
     openapi.schema='{
-        title: "流式聊天响应",
-        description: "包含AI回复片段的流式聊天响应",
-        required: ["response"]
+        title:"流式聊天响应",
+        description:"包含AI回复片段的流式聊天响应",
+        required:["response"]
+    }'
+)
+
+struct GetConversationHistoryRequest {
+    1: string conversation_id(api.query="conversation_id", openapi.property='{
+        title:"对话ID",
+        description:"要获取的对话UUID",
+        type:"string"
+    }')
+}(
+    openapi.schema='{
+        title:"获取历史请求",
+        description:"按UUID获取完整对话历史",
+        required:["conversation_id"]
+    }'
+)
+
+struct GetConversationHistoryResponse {
+    1: string conversation_id(api.body="conversation_id", openapi.property='{
+        title:"对话ID",
+        type:"string"
+    }')
+    2: list<model.ConversationHistoryMessage> messages(api.body="messages", openapi.property='{
+        title:"消息列表",
+        type:"array"
+    }')
+    3: i64 total(api.body="total", openapi.property='{
+        title:"消息总数",
+        type:"integer"
+    }')
+}(
+    openapi.schema='{
+        title:"获取历史响应",
+        description:"返回对话的全部消息"
     }'
 )
 
@@ -216,7 +270,9 @@ service ApiService {
     ChatSSEHandlerResponse ChatSSE(1: ChatSSEHandlerRequest req)(api.post="/api/v1/chat/sse")
     // 示例接口 idl写好后运行make hertz-gen-api生成脚手架
     TemplateResponse Template(1: TemplateRequest req)(api.post="/api/v1/template")
-    // 总结会话
+    // 获取会话历史
+    GetConversationHistoryResponse GetConversationHistory(1: GetConversationHistoryRequest req)(api.get="/api/v1/conversation/history")
+    // 会话总结
     SummarizeConversationResponse SummarizeConversation(1: SummarizeConversationRequest req)(api.post="/api/v1/conversation/summarize")
     // 获取jwch登录数据
     GetLoginDataResponse GetLoginData(1: GetLoginDataRequest req)(api.post="/api/v1/user/login")

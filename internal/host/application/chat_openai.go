@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+
 	"github.com/FantasyRL/go-mcp-demo/pkg/logger"
 
 	"github.com/FantasyRL/go-mcp-demo/config"
@@ -12,7 +13,7 @@ import (
 	openai "github.com/openai/openai-go/v2"
 )
 
-// 将 OpenAI 的 tool_calls[].function.arguments (string) 解成 map[string]any（与原逻辑一致）
+// 将 OpenAI 的 tool_calls[].function.arguments (string) 解成 map[string]any
 func parseOpenAIToolArgs(argStr string) map[string]any {
 	if argStr == "" {
 		return map[string]any{}
@@ -29,16 +30,29 @@ const maxToolRounds = 10 // 防御性上限，避免死循环
 
 func (h *Host) StreamChatOpenAI(
 	ctx context.Context,
-	id int64,
+	userID string,
+	conversationID string,
 	userMsg string,
 	imageData []byte,
 	emit func(event string, v any) error, // SSE: event 名 + 任意 JSON 数据
 ) error {
 	// 历史（OpenAI）
-	hist := historyOpenAI[id]
-	if hist == nil {
-		hist = []openai.ChatCompletionMessageParamUnion{}
+	var hist []openai.ChatCompletionMessageParamUnion
+
+	// 从数据库加载该对话的历史消息填充 hist（如果不存在就保持为空）
+	conversation, err := h.templateRepository.GetConversationByID(ctx, conversationID)
+	if err != nil {
+		return err
 	}
+	if conversation != nil {
+		if err := json.Unmarshal([]byte(conversation.Messages), &hist); err != nil {
+			logger.Errorf("failed to unmarshal conversation messages, conversationID=%s, err=%v", conversationID, err)
+			return err
+		}
+	}
+
+	// 记录当前历史长度，用于之后只持久化“新增部分”
+	baseLen := len(hist)
 
 	// 构建用户消息
 	if len(imageData) > 0 {
@@ -82,7 +96,14 @@ func (h *Host) StreamChatOpenAI(
 	for {
 		round++
 		if round > maxToolRounds {
-			historyOpenAI[id] = hist
+			// 每轮对话结束时持久化“新增历史”
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(ctx, userID, conversationID, newMessages); err != nil {
+					return err
+				}
+			}
+
 			_ = emit(constant.SSEEventDone, map[string]any{"reason": "tool_round_limit"})
 			return nil
 		}
@@ -128,7 +149,14 @@ func (h *Host) StreamChatOpenAI(
 
 		// 如果本轮不需要工具，说明模型已经给出最终答案
 		if !needTools {
-			historyOpenAI[id] = hist
+			// 对话结束，持久化“新增历史”
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(ctx, userID, conversationID, newMessages); err != nil {
+					return err
+				}
+			}
+
 			_ = emit(constant.SSEEventDone, map[string]any{"reason": "completed"})
 			return nil
 		}
@@ -136,7 +164,14 @@ func (h *Host) StreamChatOpenAI(
 		// 执行（可能多个）工具调用，然后将每个工具结果以 ToolMessage 落历史
 		if len(acc.Choices) == 0 || len(acc.Choices[0].Message.ToolCalls) == 0 {
 			// 偶发兜底：标记需要工具但没聚合到（理论上不会发生）
-			historyOpenAI[id] = hist
+			// 对话结束，持久化“新增历史”
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(ctx, userID, conversationID, newMessages); err != nil {
+					return err
+				}
+			}
+
 			_ = emit(constant.SSEEventDone, map[string]any{"reason": "no_tool_details"})
 			return nil
 		}
@@ -197,12 +232,29 @@ func (h *Host) StreamChatOpenAI(
 }
 
 // ChatOpenAI 非流式OpenAI聊天，支持图片和工具调用
-func (h *Host) ChatOpenAI(id int64, msg string, imageData []byte) (string, error) {
+func (h *Host) ChatOpenAI(
+	userID string,
+	conversationID string, // uuid
+	msg string,
+	imageData []byte,
+) (string, error) {
 	// 历史（OpenAI）
-	hist := historyOpenAI[id]
-	if hist == nil {
-		hist = []openai.ChatCompletionMessageParamUnion{}
+	var hist []openai.ChatCompletionMessageParamUnion
+
+	// 从数据库加载该对话的历史消息填充 hist（如果不存在就保持为空）
+	conversation, err := h.templateRepository.GetConversationByID(h.ctx, conversationID)
+	if err != nil {
+		return "", err
 	}
+	if conversation != nil {
+		if err := json.Unmarshal([]byte(conversation.Messages), &hist); err != nil {
+			logger.Errorf("failed to unmarshal conversation messages, conversationID=%s, err=%v", conversationID, err)
+			return "", err
+		}
+	}
+
+	// 记录当前历史长度，用于之后只持久化“新增部分”
+	baseLen := len(hist)
 
 	// 构建用户消息
 	if len(imageData) > 0 {
@@ -249,7 +301,14 @@ func (h *Host) ChatOpenAI(id int64, msg string, imageData []byte) (string, error
 	for {
 		round++
 		if round > maxToolRounds {
-			historyOpenAI[id] = hist
+			// 对话结束，持久化“新增历史”
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(h.ctx, userID, conversationID, newMessages); err != nil {
+					return "", err
+				}
+			}
+
 			return "已达到工具调用轮次上限", nil
 		}
 
@@ -278,6 +337,15 @@ func (h *Host) ChatOpenAI(id int64, msg string, imageData []byte) (string, error
 		logger.Infof("ChatOpenAI response: choices=%d", len(resp.Choices))
 		if len(resp.Choices) == 0 {
 			logger.Errorf("ChatOpenAI: no choices in response")
+
+			// 对话结束，持久化“新增历史”（虽然没有新 assistant 内容，但有这轮 user 消息）
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(h.ctx, userID, conversationID, newMessages); err != nil {
+					return "", err
+				}
+			}
+
 			return "模型返回为空", nil
 		}
 
@@ -289,7 +357,15 @@ func (h *Host) ChatOpenAI(id int64, msg string, imageData []byte) (string, error
 			// 无工具调用，返回模型回复
 			content := resp.Choices[0].Message.Content
 			hist = append(hist, openai.AssistantMessage(content))
-			historyOpenAI[id] = hist
+
+			// 对话结束，持久化“新增历史”
+			newMessages := hist[baseLen:]
+			if len(newMessages) > 0 {
+				if err := h.templateRepository.UpsertConversation(h.ctx, userID, conversationID, newMessages); err != nil {
+					return "", err
+				}
+			}
+
 			return content, nil
 		}
 
