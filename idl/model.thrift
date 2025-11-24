@@ -37,29 +37,3 @@ struct User {
         required: ["id", "name"]
     }'
 )
-
-struct ConversationHistoryMessage {
-    1: string role(api.body="role", openapi.property='{
-        title:"角色",
-        description:"user/assistant/tool",
-        type:"string"
-    }')
-    2: string content(api.body="content", openapi.property='{
-        title:"内容",
-        description:"消息文本或工具结果",
-        type:"string"
-    }')
-    3: optional string tool_name(api.body="tool_name", openapi.property='{
-        title:"工具名",
-        type:"string"
-    }')
-    4: optional list<string> images(api.body="images", openapi.property='{
-        title:"图片Base64列表",
-        type:"array"
-    }')
-}(
-    openapi.schema='{
-        title:"单条对话消息",
-        description:"对话中的一条消息"
-    }'
-)

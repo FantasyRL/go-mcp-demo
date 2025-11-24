@@ -221,6 +221,19 @@ func GetConversationHistory(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := new(api.GetConversationHistoryResponse)
+	uid, ok := utils.ExtractStuID(ctx)
+	if !ok {
+		pack.RespError(c, errno.AuthInvalid)
+		return
+	}
 
-	c.JSON(consts.StatusOK, resp)
+	history, err := application.NewHost(ctx, clientSet).GetConversation(uid, req.ConversationID)
+	if err != nil {
+		pack.RespError(c, err)
+		return
+	}
+	resp.ConversationID = history.ID
+	resp.Messages = history.Messages
+
+	pack.RespData(c, resp)
 }

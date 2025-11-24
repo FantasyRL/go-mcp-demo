@@ -1030,9 +1030,8 @@ func (p *GetConversationHistoryRequest) String() string {
 }
 
 type GetConversationHistoryResponse struct {
-	ConversationID string                              `thrift:"conversation_id,1" form:"conversation_id" json:"conversation_id"`
-	Messages       []*model.ConversationHistoryMessage `thrift:"messages,2,default,list<model.ConversationHistoryMessage>" form:"messages" json:"messages"`
-	Total          int64                               `thrift:"total,3" form:"total" json:"total"`
+	ConversationID string `thrift:"conversation_id,1" form:"conversation_id" json:"conversation_id"`
+	Messages       string `thrift:"messages,2" form:"messages" json:"messages"`
 }
 
 func NewGetConversationHistoryResponse() *GetConversationHistoryResponse {
@@ -1046,18 +1045,13 @@ func (p *GetConversationHistoryResponse) GetConversationID() (v string) {
 	return p.ConversationID
 }
 
-func (p *GetConversationHistoryResponse) GetMessages() (v []*model.ConversationHistoryMessage) {
+func (p *GetConversationHistoryResponse) GetMessages() (v string) {
 	return p.Messages
-}
-
-func (p *GetConversationHistoryResponse) GetTotal() (v int64) {
-	return p.Total
 }
 
 var fieldIDToName_GetConversationHistoryResponse = map[int16]string{
 	1: "conversation_id",
 	2: "messages",
-	3: "total",
 }
 
 func (p *GetConversationHistoryResponse) Read(iprot thrift.TProtocol) (err error) {
@@ -1088,16 +1082,8 @@ func (p *GetConversationHistoryResponse) Read(iprot thrift.TProtocol) (err error
 				goto SkipFieldError
 			}
 		case 2:
-			if fieldTypeId == thrift.LIST {
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		case 3:
-			if fieldTypeId == thrift.I64 {
-				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -1144,37 +1130,14 @@ func (p *GetConversationHistoryResponse) ReadField1(iprot thrift.TProtocol) erro
 	return nil
 }
 func (p *GetConversationHistoryResponse) ReadField2(iprot thrift.TProtocol) error {
-	_, size, err := iprot.ReadListBegin()
-	if err != nil {
-		return err
-	}
-	_field := make([]*model.ConversationHistoryMessage, 0, size)
-	values := make([]model.ConversationHistoryMessage, size)
-	for i := 0; i < size; i++ {
-		_elem := &values[i]
-		_elem.InitDefault()
 
-		if err := _elem.Read(iprot); err != nil {
-			return err
-		}
-
-		_field = append(_field, _elem)
-	}
-	if err := iprot.ReadListEnd(); err != nil {
-		return err
-	}
-	p.Messages = _field
-	return nil
-}
-func (p *GetConversationHistoryResponse) ReadField3(iprot thrift.TProtocol) error {
-
-	var _field int64
-	if v, err := iprot.ReadI64(); err != nil {
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
 		return err
 	} else {
 		_field = v
 	}
-	p.Total = _field
+	p.Messages = _field
 	return nil
 }
 
@@ -1190,10 +1153,6 @@ func (p *GetConversationHistoryResponse) Write(oprot thrift.TProtocol) (err erro
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
-			goto WriteFieldError
-		}
-		if err = p.writeField3(oprot); err != nil {
-			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -1232,18 +1191,10 @@ WriteFieldEndError:
 }
 
 func (p *GetConversationHistoryResponse) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("messages", thrift.LIST, 2); err != nil {
+	if err = oprot.WriteFieldBegin("messages", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Messages)); err != nil {
-		return err
-	}
-	for _, v := range p.Messages {
-		if err := v.Write(oprot); err != nil {
-			return err
-		}
-	}
-	if err := oprot.WriteListEnd(); err != nil {
+	if err := oprot.WriteString(p.Messages); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1254,23 +1205,6 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
-}
-
-func (p *GetConversationHistoryResponse) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("total", thrift.I64, 3); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteI64(p.Total); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
 func (p *GetConversationHistoryResponse) String() string {

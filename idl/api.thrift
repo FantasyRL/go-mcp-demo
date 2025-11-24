@@ -107,18 +107,15 @@ struct GetConversationHistoryResponse {
         title:"对话ID",
         type:"string"
     }')
-    2: list<model.ConversationHistoryMessage> messages(api.body="messages", openapi.property='{
-        title:"消息列表",
-        type:"array"
-    }')
-    3: i64 total(api.body="total", openapi.property='{
-        title:"消息总数",
-        type:"integer"
+    2: string messages(api.body="messages", openapi.property='{
+        title:"json消息",
+        type:"strig"
     }')
 }(
     openapi.schema='{
         title:"获取历史响应",
         description:"返回对话的全部消息"
+        required:["conversation_id","messages"]
     }'
 )
 

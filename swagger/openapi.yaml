@@ -218,43 +218,19 @@ components:
                     title: 对话ID UUID
                     type: string
             description: 包含AI回复片段的流式聊天响应
-        ConversationHistoryMessage:
-            title: 单条对话消息
-            type: object
-            properties:
-                role:
-                    title: 角色
-                    type: string
-                    description: user/assistant/tool
-                content:
-                    title: 内容
-                    type: string
-                    description: 消息文本或工具结果
-                tool_name:
-                    title: 工具名
-                    type: string
-                images:
-                    title: 图片Base64列表
-                    type: array
-                    items:
-                        type: string
-            description: 对话中的一条消息
         GetConversationHistoryResponseBody:
             title: 获取历史响应
+            required:
+                - conversation_id
+                - messages
             type: object
             properties:
                 conversation_id:
                     title: 对话ID
                     type: string
                 messages:
-                    title: 消息列表
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/ConversationHistoryMessage'
-                total:
-                    title: 消息总数
-                    type: integer
-                    format: int64
+                    title: json消息
+                    type: strig
             description: 返回对话的全部消息
         GetLoginDataRequestBody:
             title: 登录请求
