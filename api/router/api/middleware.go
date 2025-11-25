@@ -22,17 +22,18 @@ func _v1Mw() []app.HandlerFunc {
 }
 
 func _chatMw() []app.HandlerFunc {
-	// your code...
-	return nil
+	return []app.HandlerFunc{
+		mw.Auth(),
+	}
 }
 
 func _chat0Mw() []app.HandlerFunc {
-	// your code...
-	return nil
+	return []app.HandlerFunc{
+		mw.Auth(),
+	}
 }
 
 func _chatsseMw() []app.HandlerFunc {
-	// your code...
 	return nil
 }
 
@@ -71,6 +72,11 @@ func _getuserinfoMw() []app.HandlerFunc {
 }
 
 func _getlogindataMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _getconversationhistoryMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }

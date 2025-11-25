@@ -5,6 +5,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"github.com/FantasyRL/go-mcp-demo/pkg/errno"
+	"github.com/FantasyRL/go-mcp-demo/pkg/utils"
 	"io"
 
 	api "github.com/FantasyRL/go-mcp-demo/api/model/api"
@@ -47,7 +49,12 @@ func Chat(ctx context.Context, c *app.RequestContext) {
 	}
 
 	resp := new(api.ChatResponse)
-	msg, err := application.NewHost(ctx, clientSet).Chat(1, req.Message, imageData)
+	uid, ok := utils.ExtractStuID(ctx)
+	if !ok {
+		pack.RespError(c, errno.AuthInvalid)
+		return
+	}
+	msg, err := application.NewHost(ctx, clientSet).ChatOpenAI(uid, req.ConversationID, req.Message, imageData)
 	if err != nil {
 		pack.RespError(c, err)
 		return
@@ -100,8 +107,13 @@ func ChatSSE(ctx context.Context, c *app.RequestContext) {
 			return w.WriteEvent("", "", b)
 		}
 	}
+	uid, ok := utils.ExtractStuID(ctx)
+	if !ok {
+		_ = emit("error", map[string]any{"error": "unauthorized"})
+		return
+	}
 
-	if err := application.NewHost(ctx, clientSet).StreamChatOpenAI(ctx, 1, req.Message, imageData, emit); err != nil {
+	if err := application.NewHost(ctx, clientSet).StreamChatOpenAI(ctx, uid, req.ConversationID, req.Message, imageData, emit); err != nil {
 		_ = emit("error", map[string]any{"error": err.Error()})
 		return
 	}
@@ -195,4 +207,33 @@ func GetUserInfo(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	pack.RespData(c, info)
+}
+
+// GetConversationHistory .
+// @router /api/v1/conversation/history [GET]
+func GetConversationHistory(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req api.GetConversationHistoryRequest
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+
+	resp := new(api.GetConversationHistoryResponse)
+	uid, ok := utils.ExtractStuID(ctx)
+	if !ok {
+		pack.RespError(c, errno.AuthInvalid)
+		return
+	}
+
+	history, err := application.NewHost(ctx, clientSet).GetConversation(uid, req.ConversationID)
+	if err != nil {
+		pack.RespError(c, err)
+		return
+	}
+	resp.ConversationID = history.ID
+	resp.Messages = history.Messages
+
+	pack.RespData(c, resp)
 }

@@ -10,8 +10,9 @@ import (
 )
 
 type ChatRequest struct {
-	Message string `thrift:"message,1" form:"message" json:"message"`
-	Image   []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
+	Message        string `thrift:"message,1" form:"message" json:"message"`
+	Image          []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
+	ConversationID string `thrift:"conversation_id,3" form:"conversation_id" json:"conversation_id"`
 }
 
 func NewChatRequest() *ChatRequest {
@@ -34,9 +35,14 @@ func (p *ChatRequest) GetImage() (v []byte) {
 	return p.Image
 }
 
+func (p *ChatRequest) GetConversationID() (v string) {
+	return p.ConversationID
+}
+
 var fieldIDToName_ChatRequest = map[int16]string{
 	1: "message",
 	2: "image",
+	3: "conversation_id",
 }
 
 func (p *ChatRequest) IsSetImage() bool {
@@ -73,6 +79,14 @@ func (p *ChatRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -129,6 +143,17 @@ func (p *ChatRequest) ReadField2(iprot thrift.TProtocol) error {
 	p.Image = _field
 	return nil
 }
+func (p *ChatRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ConversationID = _field
+	return nil
+}
 
 func (p *ChatRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -142,6 +167,10 @@ func (p *ChatRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -198,6 +227,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
+func (p *ChatRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ConversationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
 func (p *ChatRequest) String() string {
 	if p == nil {
 		return "<nil>"
@@ -207,7 +253,8 @@ func (p *ChatRequest) String() string {
 }
 
 type ChatResponse struct {
-	Response string `thrift:"response,1" form:"response" json:"response"`
+	Response       string  `thrift:"response,1" form:"response" json:"response"`
+	ConversationID *string `thrift:"conversation_id,2,optional" form:"conversation_id" json:"conversation_id,omitempty"`
 }
 
 func NewChatResponse() *ChatResponse {
@@ -221,8 +268,22 @@ func (p *ChatResponse) GetResponse() (v string) {
 	return p.Response
 }
 
+var ChatResponse_ConversationID_DEFAULT string
+
+func (p *ChatResponse) GetConversationID() (v string) {
+	if !p.IsSetConversationID() {
+		return ChatResponse_ConversationID_DEFAULT
+	}
+	return *p.ConversationID
+}
+
 var fieldIDToName_ChatResponse = map[int16]string{
 	1: "response",
+	2: "conversation_id",
+}
+
+func (p *ChatResponse) IsSetConversationID() bool {
+	return p.ConversationID != nil
 }
 
 func (p *ChatResponse) Read(iprot thrift.TProtocol) (err error) {
@@ -247,6 +308,14 @@ func (p *ChatResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -292,6 +361,17 @@ func (p *ChatResponse) ReadField1(iprot thrift.TProtocol) error {
 	p.Response = _field
 	return nil
 }
+func (p *ChatResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ConversationID = _field
+	return nil
+}
 
 func (p *ChatResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -301,6 +381,10 @@ func (p *ChatResponse) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -338,6 +422,25 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *ChatResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetConversationID() {
+		if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ConversationID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
 func (p *ChatResponse) String() string {
 	if p == nil {
 		return "<nil>"
@@ -347,8 +450,9 @@ func (p *ChatResponse) String() string {
 }
 
 type ChatSSEHandlerRequest struct {
-	Message string `thrift:"message,1" json:"message" query:"message"`
-	Image   []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
+	Message        string `thrift:"message,1" json:"message" query:"message"`
+	Image          []byte `thrift:"image,2,optional" form:"image" json:"image,omitempty"`
+	ConversationID string `thrift:"conversation_id,3" json:"conversation_id" query:"conversation_id"`
 }
 
 func NewChatSSEHandlerRequest() *ChatSSEHandlerRequest {
@@ -371,9 +475,14 @@ func (p *ChatSSEHandlerRequest) GetImage() (v []byte) {
 	return p.Image
 }
 
+func (p *ChatSSEHandlerRequest) GetConversationID() (v string) {
+	return p.ConversationID
+}
+
 var fieldIDToName_ChatSSEHandlerRequest = map[int16]string{
 	1: "message",
 	2: "image",
+	3: "conversation_id",
 }
 
 func (p *ChatSSEHandlerRequest) IsSetImage() bool {
@@ -410,6 +519,14 @@ func (p *ChatSSEHandlerRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -466,6 +583,17 @@ func (p *ChatSSEHandlerRequest) ReadField2(iprot thrift.TProtocol) error {
 	p.Image = _field
 	return nil
 }
+func (p *ChatSSEHandlerRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ConversationID = _field
+	return nil
+}
 
 func (p *ChatSSEHandlerRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -479,6 +607,10 @@ func (p *ChatSSEHandlerRequest) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -535,6 +667,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
+func (p *ChatSSEHandlerRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ConversationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
 func (p *ChatSSEHandlerRequest) String() string {
 	if p == nil {
 		return "<nil>"
@@ -544,7 +693,8 @@ func (p *ChatSSEHandlerRequest) String() string {
 }
 
 type ChatSSEHandlerResponse struct {
-	Response string `thrift:"response,1" form:"response" json:"response"`
+	Response       string  `thrift:"response,1" form:"response" json:"response"`
+	ConversationID *string `thrift:"conversation_id,2,optional" form:"conversation_id" json:"conversation_id,omitempty"`
 }
 
 func NewChatSSEHandlerResponse() *ChatSSEHandlerResponse {
@@ -558,8 +708,22 @@ func (p *ChatSSEHandlerResponse) GetResponse() (v string) {
 	return p.Response
 }
 
+var ChatSSEHandlerResponse_ConversationID_DEFAULT string
+
+func (p *ChatSSEHandlerResponse) GetConversationID() (v string) {
+	if !p.IsSetConversationID() {
+		return ChatSSEHandlerResponse_ConversationID_DEFAULT
+	}
+	return *p.ConversationID
+}
+
 var fieldIDToName_ChatSSEHandlerResponse = map[int16]string{
 	1: "response",
+	2: "conversation_id",
+}
+
+func (p *ChatSSEHandlerResponse) IsSetConversationID() bool {
+	return p.ConversationID != nil
 }
 
 func (p *ChatSSEHandlerResponse) Read(iprot thrift.TProtocol) (err error) {
@@ -584,6 +748,14 @@ func (p *ChatSSEHandlerResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -629,6 +801,17 @@ func (p *ChatSSEHandlerResponse) ReadField1(iprot thrift.TProtocol) error {
 	p.Response = _field
 	return nil
 }
+func (p *ChatSSEHandlerResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field *string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = &v
+	}
+	p.ConversationID = _field
+	return nil
+}
 
 func (p *ChatSSEHandlerResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -638,6 +821,10 @@ func (p *ChatSSEHandlerResponse) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -675,11 +862,356 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *ChatSSEHandlerResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if p.IsSetConversationID() {
+		if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 2); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := oprot.WriteString(*p.ConversationID); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
 func (p *ChatSSEHandlerResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
 	return fmt.Sprintf("ChatSSEHandlerResponse(%+v)", *p)
+
+}
+
+type GetConversationHistoryRequest struct {
+	ConversationID string `thrift:"conversation_id,1" json:"conversation_id" query:"conversation_id"`
+}
+
+func NewGetConversationHistoryRequest() *GetConversationHistoryRequest {
+	return &GetConversationHistoryRequest{}
+}
+
+func (p *GetConversationHistoryRequest) InitDefault() {
+}
+
+func (p *GetConversationHistoryRequest) GetConversationID() (v string) {
+	return p.ConversationID
+}
+
+var fieldIDToName_GetConversationHistoryRequest = map[int16]string{
+	1: "conversation_id",
+}
+
+func (p *GetConversationHistoryRequest) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetConversationHistoryRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetConversationHistoryRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ConversationID = _field
+	return nil
+}
+
+func (p *GetConversationHistoryRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetConversationHistoryRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetConversationHistoryRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ConversationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *GetConversationHistoryRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetConversationHistoryRequest(%+v)", *p)
+
+}
+
+type GetConversationHistoryResponse struct {
+	ConversationID string `thrift:"conversation_id,1" form:"conversation_id" json:"conversation_id"`
+	Messages       string `thrift:"messages,2" form:"messages" json:"messages"`
+}
+
+func NewGetConversationHistoryResponse() *GetConversationHistoryResponse {
+	return &GetConversationHistoryResponse{}
+}
+
+func (p *GetConversationHistoryResponse) InitDefault() {
+}
+
+func (p *GetConversationHistoryResponse) GetConversationID() (v string) {
+	return p.ConversationID
+}
+
+func (p *GetConversationHistoryResponse) GetMessages() (v string) {
+	return p.Messages
+}
+
+var fieldIDToName_GetConversationHistoryResponse = map[int16]string{
+	1: "conversation_id",
+	2: "messages",
+}
+
+func (p *GetConversationHistoryResponse) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetConversationHistoryResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *GetConversationHistoryResponse) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ConversationID = _field
+	return nil
+}
+func (p *GetConversationHistoryResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Messages = _field
+	return nil
+}
+
+func (p *GetConversationHistoryResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetConversationHistoryResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *GetConversationHistoryResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("conversation_id", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ConversationID); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *GetConversationHistoryResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("messages", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Messages); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *GetConversationHistoryResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetConversationHistoryResponse(%+v)", *p)
 
 }
 
@@ -2130,7 +2662,9 @@ type ApiService interface {
 	ChatSSE(ctx context.Context, req *ChatSSEHandlerRequest) (r *ChatSSEHandlerResponse, err error)
 	// 示例接口 idl写好后运行make hertz-gen-api生成脚手架
 	Template(ctx context.Context, req *TemplateRequest) (r *TemplateResponse, err error)
-	// 总结会话
+	// 获取会话历史
+	GetConversationHistory(ctx context.Context, req *GetConversationHistoryRequest) (r *GetConversationHistoryResponse, err error)
+	// 会话总结
 	SummarizeConversation(ctx context.Context, req *SummarizeConversationRequest) (r *SummarizeConversationResponse, err error)
 	// 获取jwch登录数据
 	GetLoginData(ctx context.Context, req *GetLoginDataRequest) (r *GetLoginDataResponse, err error)
@@ -2191,6 +2725,15 @@ func (p *ApiServiceClient) Template(ctx context.Context, req *TemplateRequest) (
 	}
 	return _result.GetSuccess(), nil
 }
+func (p *ApiServiceClient) GetConversationHistory(ctx context.Context, req *GetConversationHistoryRequest) (r *GetConversationHistoryResponse, err error) {
+	var _args ApiServiceGetConversationHistoryArgs
+	_args.Req = req
+	var _result ApiServiceGetConversationHistoryResult
+	if err = p.Client_().Call(ctx, "GetConversationHistory", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
 func (p *ApiServiceClient) SummarizeConversation(ctx context.Context, req *SummarizeConversationRequest) (r *SummarizeConversationResponse, err error) {
 	var _args ApiServiceSummarizeConversationArgs
 	_args.Req = req
@@ -2242,6 +2785,7 @@ func NewApiServiceProcessor(handler ApiService) *ApiServiceProcessor {
 	self.AddToProcessorMap("Chat", &apiServiceProcessorChat{handler: handler})
 	self.AddToProcessorMap("ChatSSE", &apiServiceProcessorChatSSE{handler: handler})
 	self.AddToProcessorMap("Template", &apiServiceProcessorTemplate{handler: handler})
+	self.AddToProcessorMap("GetConversationHistory", &apiServiceProcessorGetConversationHistory{handler: handler})
 	self.AddToProcessorMap("SummarizeConversation", &apiServiceProcessorSummarizeConversation{handler: handler})
 	self.AddToProcessorMap("GetLoginData", &apiServiceProcessorGetLoginData{handler: handler})
 	self.AddToProcessorMap("GetUserInfo", &apiServiceProcessorGetUserInfo{handler: handler})
@@ -2392,6 +2936,54 @@ func (p *apiServiceProcessorTemplate) Process(ctx context.Context, seqId int32, 
 		result.Success = retval
 	}
 	if err2 = oprot.WriteMessageBegin("Template", thrift.REPLY, seqId); err2 != nil {
+		err = err2
+	}
+	if err2 = result.Write(oprot); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+		err = err2
+	}
+	if err2 = oprot.Flush(ctx); err == nil && err2 != nil {
+		err = err2
+	}
+	if err != nil {
+		return
+	}
+	return true, err
+}
+
+type apiServiceProcessorGetConversationHistory struct {
+	handler ApiService
+}
+
+func (p *apiServiceProcessorGetConversationHistory) Process(ctx context.Context, seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+	args := ApiServiceGetConversationHistoryArgs{}
+	if err = args.Read(iprot); err != nil {
+		iprot.ReadMessageEnd()
+		x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+		oprot.WriteMessageBegin("GetConversationHistory", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return false, err
+	}
+
+	iprot.ReadMessageEnd()
+	var err2 error
+	result := ApiServiceGetConversationHistoryResult{}
+	var retval *GetConversationHistoryResponse
+	if retval, err2 = p.handler.GetConversationHistory(ctx, args.Req); err2 != nil {
+		x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetConversationHistory: "+err2.Error())
+		oprot.WriteMessageBegin("GetConversationHistory", thrift.EXCEPTION, seqId)
+		x.Write(oprot)
+		oprot.WriteMessageEnd()
+		oprot.Flush(ctx)
+		return true, err2
+	} else {
+		result.Success = retval
+	}
+	if err2 = oprot.WriteMessageBegin("GetConversationHistory", thrift.REPLY, seqId); err2 != nil {
 		err = err2
 	}
 	if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -3432,6 +4024,300 @@ func (p *ApiServiceTemplateResult) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("ApiServiceTemplateResult(%+v)", *p)
+
+}
+
+type ApiServiceGetConversationHistoryArgs struct {
+	Req *GetConversationHistoryRequest `thrift:"req,1"`
+}
+
+func NewApiServiceGetConversationHistoryArgs() *ApiServiceGetConversationHistoryArgs {
+	return &ApiServiceGetConversationHistoryArgs{}
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) InitDefault() {
+}
+
+var ApiServiceGetConversationHistoryArgs_Req_DEFAULT *GetConversationHistoryRequest
+
+func (p *ApiServiceGetConversationHistoryArgs) GetReq() (v *GetConversationHistoryRequest) {
+	if !p.IsSetReq() {
+		return ApiServiceGetConversationHistoryArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+var fieldIDToName_ApiServiceGetConversationHistoryArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApiServiceGetConversationHistoryArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewGetConversationHistoryRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetConversationHistory_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ApiServiceGetConversationHistoryArgs(%+v)", *p)
+
+}
+
+type ApiServiceGetConversationHistoryResult struct {
+	Success *GetConversationHistoryResponse `thrift:"success,0,optional"`
+}
+
+func NewApiServiceGetConversationHistoryResult() *ApiServiceGetConversationHistoryResult {
+	return &ApiServiceGetConversationHistoryResult{}
+}
+
+func (p *ApiServiceGetConversationHistoryResult) InitDefault() {
+}
+
+var ApiServiceGetConversationHistoryResult_Success_DEFAULT *GetConversationHistoryResponse
+
+func (p *ApiServiceGetConversationHistoryResult) GetSuccess() (v *GetConversationHistoryResponse) {
+	if !p.IsSetSuccess() {
+		return ApiServiceGetConversationHistoryResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+var fieldIDToName_ApiServiceGetConversationHistoryResult = map[int16]string{
+	0: "success",
+}
+
+func (p *ApiServiceGetConversationHistoryResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ApiServiceGetConversationHistoryResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ApiServiceGetConversationHistoryResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewGetConversationHistoryResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *ApiServiceGetConversationHistoryResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetConversationHistory_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *ApiServiceGetConversationHistoryResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ApiServiceGetConversationHistoryResult(%+v)", *p)
 
 }
 

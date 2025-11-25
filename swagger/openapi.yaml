@@ -44,6 +44,12 @@ paths:
                     title: 用户消息
                     type: string
                     description: 用户发送的消息内容
+                - name: conversation_id
+                  in: query
+                  schema:
+                    title: 对话ID
+                    type: string
+                    description: 前端生成的UUID，多轮会话标识
             requestBody:
                 content:
                     multipart/form-data:
@@ -59,11 +65,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ChatSSEHandlerResponseBody'
+    /api/v1/conversation/history:
+        get:
+            tags:
+                - ApiService
+            description: 获取会话历史
+            operationId: ApiService_GetConversationHistory
+            parameters:
+                - name: conversation_id
+                  in: query
+                  schema:
+                    title: 对话ID
+                    type: string
+                    description: 要获取的对话UUID
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetConversationHistoryResponseBody'
     /api/v1/conversation/summarize:
         post:
             tags:
                 - ApiService
-            description: 总结会话
+            description: 会话总结
             operationId: ApiService_SummarizeConversation
             requestBody:
                 content:
@@ -138,6 +164,10 @@ components:
                     title: 用户消息
                     type: string
                     description: 用户发送的消息内容
+                conversation_id:
+                    title: 对话ID
+                    type: string
+                    description: 前端生成的UUID，多轮会话唯一标识
             description: 包含用户消息的聊天请求
         ChatRequestForm:
             title: 聊天请求
@@ -159,6 +189,10 @@ components:
                     title: AI回复
                     type: string
                     description: AI生成的回复内容
+                conversation_id:
+                    title: 对话ID
+                    type: string
+                    description: 回显本轮所属的对话UUID
             description: 包含AI回复的聊天响应
         ChatSSEHandlerRequestForm:
             title: 流式聊天请求
@@ -180,7 +214,24 @@ components:
                     title: AI回复片段
                     type: string
                     description: AI生成的回复片段
+                conversation_id:
+                    title: 对话ID UUID
+                    type: string
             description: 包含AI回复片段的流式聊天响应
+        GetConversationHistoryResponseBody:
+            title: 获取历史响应
+            required:
+                - conversation_id
+                - messages
+            type: object
+            properties:
+                conversation_id:
+                    title: 对话ID
+                    type: string
+                messages:
+                    title: json消息
+                    type: strig
+            description: 返回对话的全部消息
         GetLoginDataRequestBody:
             title: 登录请求
             required:
