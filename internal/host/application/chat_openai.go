@@ -39,6 +39,9 @@ func (h *Host) StreamChatOpenAI(
 	if hist == nil {
 		hist = []openai.ChatCompletionMessageParamUnion{}
 	}
+	if len(hist) > 10 {
+		hist = hist[len(hist)-10:]
+	}
 
 	// 构建用户消息
 	if len(imageData) > 0 {
