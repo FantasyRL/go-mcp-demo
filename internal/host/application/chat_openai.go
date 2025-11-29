@@ -75,7 +75,21 @@ func (h *Host) StreamChatOpenAI(
 		})
 	} else {
 		// 纯文本消息
-		hist = append(hist, openai.UserMessage(userMsg))
+		hist = append(hist, openai.ChatCompletionMessageParamUnion{
+			OfUser: &openai.ChatCompletionUserMessageParam{
+				Role: "user",
+				Content: openai.ChatCompletionUserMessageParamContentUnion{
+					OfArrayOfContentParts: []openai.ChatCompletionContentPartUnionParam{
+						{
+							OfText: &openai.ChatCompletionContentPartTextParam{
+								Type: "text",
+								Text: userMsg,
+							},
+						},
+					},
+				},
+			},
+		})
 	}
 
 	// 工具（OpenAI 版）
