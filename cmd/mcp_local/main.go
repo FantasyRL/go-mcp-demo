@@ -28,6 +28,7 @@ func init() {
 	toolSet = tool_set.NewToolSet(
 		//application.WithDevRunnerTools(),
 		application.WithAIScienceAndEngineeringBuildHtmlTool(),
+		application.WithWebSearchTool(),
 	)
 	promptSet = prompt_set.NewPromptSet()
 }

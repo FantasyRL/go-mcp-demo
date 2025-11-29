@@ -74,8 +74,9 @@ create table todolists(
     end_time     TIMESTAMP   NOT NULL,
     is_all_day    smallint    NOT NULL DEFAULT 0,
     status       smallint    NOT NULL DEFAULT 0,
+    priority     smallint    NOT NULL DEFAULT 1,
     remind_at    TIMESTAMP,
-    tag          varchar(64),
+    category          varchar(64),
     created_at   TIMESTAMP   NOT NULL DEFAULT now(),
     updated_at TIMESTAMP(6) WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at   TIMESTAMP
@@ -93,8 +94,9 @@ comment on column todolists.start_time is '待办事项开始时间';
 comment on column todolists.end_time is '待办事项结束时间';
 comment on column todolists.is_all_day is '是否为全天事项，0-否，1-是';
 comment on column todolists.status is '待办事项状态，0-未完成，1-已完成';
+comment on column todolists.priority is '优先级，1-紧急且重要，2-重要不紧急，3-紧急不重要，4-不重要不紧急';
 comment on column todolists.remind_at is '待办事项提醒时间';
-comment on column todolists.tag is '待办事项标签';
+comment on column todolists.category is '待办事项标签';
 comment on column todolists.created_at is '创建时间';
 comment on column todolists.updated_at is '更新时间';
 comment on column todolists.deleted_at is '删除时间';

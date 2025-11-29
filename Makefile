@@ -3,14 +3,12 @@
 # go install github.com/cloudwego/kitex/tool/cmd/kitex@latest
 # go install github.com/hertz-contrib/swagger-generate/thrift-gen-http-swagger@latest
 
-# 默认输出帮助信息
 .DEFAULT_GOAL := help
 
-# 纯 Windows 环境：不强制依赖 WSL/Git Bash，默认使用 cmd，必要逻辑用 PowerShell 执行
-# 项目 MODULE 名
+
 MODULE = github.com/FantasyRL/go-mcp-demo
 REMOTE_REPOSITORY ?= fantasyrl/go-mcp-demo
-# 目录相关（避免在 Windows 下调用 pwd 失败，使用内置 CURDIR）
+
 DIR = $(CURDIR)
 CMD = $(DIR)/cmd
 CONFIG_PATH = $(DIR)/config
@@ -18,18 +16,16 @@ IDL_PATH = $(DIR)/idl
 OUTPUT_PATH = $(DIR)/output
 API_PATH= $(DIR)/cmd/api
 GEN_CONFIG_PATH ?= $(DIR)/pkg/gorm-gen/generator/etc/config.yaml
-# Docker 网络名称
+
 DOCKER_NET := docker_mcp_net
-# Docker 镜像前缀和标签
+
 IMAGE_PREFIX ?= hachimi
 TAG          ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 
-# 服务名
+
 SERVICES := host mcp_local mcp_remote
 service = $(word 1, $@)
 
-# hertz HTTP脚手架
-# init: hz new -idl ./idl/api.thrift -mod github.com/FantasyRL/go-mcp-demo -handler_dir ./api/handler -model_dir ./api/model -router_dir ./api/router
 .PHONY: hertz-gen-api
 hertz-gen-api:
 	hz update -idl ${IDL_PATH}/api.thrift; \
@@ -41,11 +37,6 @@ hertz-gen-api:
 $(SERVICES):
 	go run $(CMD)/$(service) -cfg $(CONFIG_PATH)/config.yaml
 
-# 版本的不一致可能会导致bug
-#go get -u gorm.io/gorm@v1.30.0
-#go get -u gorm.io/driver/postgres@v1.5.9
-#go get -u gorm.io/gen@v0.3.27
-#go mod tidy
 .PHONY: model
 model:
 	@echo "Generating database models..."
@@ -66,7 +57,6 @@ docker-build-%: vendor
 	  -t $(IMAGE_PREFIX)/$*:$(TAG) \
 	  .
 
-# only expose port for host service
 .PHONY: pull-run-%
 pull-run-%:
 ifeq ($(OS),Windows_NT)
@@ -119,7 +109,7 @@ help:
 
 .PHONY: stdio
 stdio:
-	go build -o bin/mcp_local ./cmd/mcp_local # windows的output需要是.exe，并且在config.stdio.yaml中修改，bin/mcp-server.exe
+	go build -o bin/mcp_local ./cmd/mcp_local 
 	go run ./cmd/host -cfg $(CONFIG_PATH)/config.stdio.yaml
 
 .PHONY: push-%
@@ -148,7 +138,6 @@ env:
 	rm -rf $(DIR)/docker/data/consul ; \
 	cd $(DIR)/docker && docker-compose up -d
 
-# only for cd to use
 .PHONY: push-cd-%
 push-cd-%: vendor
 	@if echo "$(SERVICES)" | grep -wq "$*"; then \
